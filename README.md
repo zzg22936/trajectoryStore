@@ -1,2 +1,0 @@
-# trajectoryStore
-manage trajectories
