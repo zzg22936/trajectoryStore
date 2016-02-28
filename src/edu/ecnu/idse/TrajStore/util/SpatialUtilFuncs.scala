@@ -1,15 +1,36 @@
 package edu.ecnu.idse.TrajStore.util
 
-import edu.ecnu.idse.TrajStore.core.CellInfo
+import edu.ecnu.idse.TrajStore.core.{Point, MultiLevelIndexTree, CellInfo}
 
 import scala.util.control.Breaks._
 
 /**
   * Created by zzg on 15-12-23.
   */
+
 object SpatialUtilFuncs {
 
+  def getLocatedRegion(lg:Float, la:Float, mlTree :MultiLevelIndexTree): Int ={
+    val info =  mlTree.SpatialPointQuery(new Point(lg,la,0));
+    info.cellId
+  }
+
+
+  def getCellInfo(infoID:Int,mlTree :MultiLevelIndexTree): CellInfo ={
+    var cellInfo = regions(0)
+    breakable{
+      for(i <-0 until regions.length){
+        if(regions(i).cellId ==infoID){
+          cellInfo = regions(i)
+          break
+        }
+      }
+    }
+    cellInfo
+  }
+
   def getLocatedRegion(lg:Float, la:Float, regions :Array[CellInfo]): Int ={
+
     var result  = -1
     breakable {
       for (i <- 0 until regions.length) {
@@ -47,4 +68,5 @@ object SpatialUtilFuncs {
     }
     cellInfo
   }
+
 }

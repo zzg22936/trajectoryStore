@@ -1,5 +1,7 @@
 package edu.ecnu.idse.TrajStore.core;
 
+import edu.ecnu.idse.TrajStore.operations.SpatialTemporalQuery;
+
 import java.io.*;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -7,7 +9,7 @@ import java.util.Queue;
 /**
  * Created by zzg on 16-2-21.
  */
-public class MultiLevelIndexTree implements Serializable {
+public class MultiLevelIndexTree implements Serializable,SpatialTemporalQuery{
     private int HASH_NUM;
     private static int DEFAULT_HASH_NUM =3;
 
@@ -29,6 +31,21 @@ public class MultiLevelIndexTree implements Serializable {
         }
     }*/
 
+    public CellInfo SpatialPointQuery(Point p){
+       return this.root.SpatialPointQuery(p);
+    }
+
+    public CellInfo[] SpatialRangeQuery(Rectangle rect){
+        CellInfo [] results = new CellInfo[10];
+        return  results;
+    }
+
+    public CellInfo[] SpatialTemporalRangeQuery(Rectangle rect,int minTime,int maxTime){
+        CellInfo [] results = new CellInfo[10];
+        return  results;
+    }
+
+
     public void insertCell(CellInfo info){
         this.root.insert(info);
     }
@@ -47,6 +64,11 @@ public class MultiLevelIndexTree implements Serializable {
             }
         }
 */
+
+    }
+
+    //给定infoID查找该info所对应的信息，为Block test函数服务
+    public void DFSSearchInfo(int infoID){
 
     }
 
@@ -122,14 +144,8 @@ public class MultiLevelIndexTree implements Serializable {
 
     }
 
-    interface Query{
-        public MLITNode SpatialPointQuery(Point p);
-        public MLITNode SpatialRangeQuery(Rectangle rect);
-        public MLITNode SpatialTemporalRangeQuery(Rectangle rect,int minTime,int maxTime);
 
-    }
-
-    class MLITNode implements Serializable,Query{
+    class MLITNode implements Serializable{
         public CellInfo info;
         public byte layer;
 
@@ -190,7 +206,7 @@ public class MultiLevelIndexTree implements Serializable {
             }
         }
 
-        public MLITNode SpatialPointQuery(Point p){
+    /*    public MLITNode SpatialPointQuery(Point p){
             return new MLITNode();
         }
 
@@ -200,11 +216,11 @@ public class MultiLevelIndexTree implements Serializable {
         }
         public MLITNode SpatialTemporalRangeQuery(Rectangle rect,int minTime,int maxTime){
             return  new MLITNode();
-        }
+        }*/
 
     }
 
-    class MLITInternalNode extends MLITNode{
+    class MLITInternalNode extends MLITNode {
         public MLITNode[] children = null;
 
         public MLITInternalNode(){
@@ -262,21 +278,38 @@ public class MultiLevelIndexTree implements Serializable {
         }
 
 
-        public MLITNode SpatialPointQuery(Point p){
+        public CellInfo SpatialPointQuery(Point p){
+            if(this.contains(p)){
+                int dir = -1;
+                for(int i = 0; i < 4; i++ ){
+                    if(this.children[i].contains(p)){
+                        dir = i;
+                    }
+                }
+                MLITNode child = this.children[dir];
+                if(child instanceof MLITInternalNode){
+                  return   ((MLITInternalNode)child).SpatialPointQuery(p);
+                }else {
+                    return ((MLITLeafNode)child).SpatialPointQuery(p);
+                }
+            }
+            //该节点不包含 带查询的点
+            return null;
+
+
+        }
+
+  /*      public CellInfo[]  SpatialRangeQuery(Rectangle rect){
             return new MLITLeafNode();
         }
 
-        public MLITNode  SpatialRangeQuery(Rectangle rect){
+        public CellInfo[] SpatialTemporalRangeQuery(Rectangle rect,int minTime,int maxTime){
             return new MLITLeafNode();
-        }
-
-        public MLITNode SpatialTemporalRangeQuery(Rectangle rect,int minTime,int maxTime){
-            return new MLITLeafNode();
-        }
+        }*/
 
     }
 
-    class MLITLeafNode extends MLITNode {
+    class MLITLeafNode extends MLITNode{
         public BPlusTree<Long, String>[] forests = null;
 
         public void insert(CellInfo cellInfo,int direction){
@@ -328,17 +361,18 @@ public class MultiLevelIndexTree implements Serializable {
 
 
 
-        public MLITNode SpatialPointQuery(Point p) {
-            return new MLITLeafNode();
+        public CellInfo SpatialPointQuery(Point p) {
+
+            return this.info;
         }
 
-        public MLITNode SpatialRangeQuery(Rectangle rect) {
+    /*    public MLITNode SpatialRangeQuery(Rectangle rect) {
             return new MLITLeafNode();
         }
 
         public MLITNode SpatialTemporalRangeQuery(Rectangle rect, int minTime, int maxTime) {
             return new MLITLeafNode();
-        }
+        }*/
 
     }
 
@@ -365,6 +399,9 @@ public class MultiLevelIndexTree implements Serializable {
 
         mlitree.printTree();
 
+        Point p = new Point(116.45,40.2,0);
+        CellInfo infos =  mlitree.SpatialPointQuery(p);
+        System.out.println(infos);
         // construct the temporal index from the file list.
     }
 

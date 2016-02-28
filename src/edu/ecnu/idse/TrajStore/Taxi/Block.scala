@@ -4,7 +4,7 @@ import java.io._
 import java.net.URI
 import java.text.SimpleDateFormat
 
-import edu.ecnu.idse.TrajStore.core.{CellInfo, MoPoint, Rectangle, SpatialTemporalSite}
+import edu.ecnu.idse.TrajStore.core._
 import edu.ecnu.idse.TrajStore.util.SpatialUtilFuncs
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -95,6 +95,9 @@ class Block(var blockRegion:CellInfo,var idHash:Int,
   def BinarySearchIndexToInsert(id:Int,arrays: Array[Trajectory]):Pair[Boolean,Int]={
     var start = 0
     var end = arrays.length -1
+    if(end< start){
+      end = start;
+    }
     var mid = 0
     var midValue = 0l
     var tuple : Pair[Boolean,Int] = new Pair[Boolean,Int](false,-1)
@@ -115,11 +118,17 @@ class Block(var blockRegion:CellInfo,var idHash:Int,
           }
         }
       }
-      // if the trajectory is existed, return the id
-      if(arrays(start).getTrajectoryID==id)
-        tuple=(true,mid)
-      else
-        tuple=(false,start)
+      // id大于已有的最大之
+      if(start>= arrays.length){
+        tuple = (false,start);
+      }else{
+        // if the trajectory is existed, return the id
+        if(arrays(start).getTrajectoryID==id)
+          tuple=(true,mid)
+        else
+          tuple=(false,start)
+      }
+
     }
 
     tuple
@@ -370,7 +379,8 @@ object Block{
 
   def test(): Unit ={
     val hBaseConf = HBaseConfiguration.create()
-    val indexes = SpatialTemporalSite.ReadSpatialIndex(hBaseConf)
+
+
     val sparkConf = new SparkConf().setAppName("BlockTest").setMaster("local[4]")
     sparkConf.set("spark.serializer","org,apache.spark.serializer.KryoSerializer")
     sparkConf.registerKryoClasses(Array(classOf[TaxiMs],classOf[Text],classOf[Trajectory],classOf[Block]))
@@ -394,10 +404,19 @@ object Block{
 
     val broadcastVal = sc.broadcast(beginTime)
     val broadCars = sc.broadcast(carMap)
-    val bcIndexes = sc.broadcast(indexes)
 
-    val records = sc.textFile("hdfs://localhost:9000/user/zzg/car2")
+    val indexes = SpatialTemporalSite.ReadSpatialIndex(hBaseConf)
 
+
+    val rootInfo: CellInfo = new CellInfo(1, 115.750000, 39.500000, 117.200000, 40.500000)
+    val mlitree: MultiLevelIndexTree = new MultiLevelIndexTree(3, rootInfo)
+    for(info <- indexes){
+      mlitree.insertCell(info);
+    }
+    val bcIndexes = sc.broadcast(mlitree)
+
+    val records = sc.textFile("/home/zzg/car2InSameRegion")
+  //  val records = sc.textFile("hdfs://localhost:9000/user/zzg/Info-00")
     records.map(x=> {
       val tmp = x.split(",")
       // println(tmp.apply(0))

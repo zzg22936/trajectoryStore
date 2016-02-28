@@ -68,11 +68,11 @@ public class SpatialTemporalSite {
      */
 
     public static void writeSpatialIndex(Configuration conf, CellInfo[] cellsInfo) throws IOException {
-        Path tempFile;
+        Path tempFile = new Path("spatialIndexCells");
         FileSystem fs = FileSystem.get(conf);
-        do {
+      /*  do {
             tempFile = new Path("spatialIndexCells");
-        } while (!fs.exists(tempFile));
+        } while (!fs.exists(tempFile));*/
         FSDataOutputStream out = fs.create(tempFile);
         /// total spaces number
         out.writeInt(cellsInfo.length);

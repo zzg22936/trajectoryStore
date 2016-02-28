@@ -12,8 +12,12 @@ object testTools {
     ar+= 1
     ar+=2
     ar+=3
+    println(ar.mkString(","));
     println(ar.size)
     println(ar.length)
+    ar.insert(3,4);
+    println(ar.mkString(","));
+
  //   quickSortTest
 /*
     val rec =  Array(1,19,7,11,5)

@@ -4,6 +4,8 @@ import edu.ecnu.idse.TrajStore.core.CellInfo;
 import edu.ecnu.idse.TrajStore.core.SpatialTemporalSite;
 import org.apache.hadoop.conf.Configuration;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 /**
@@ -45,9 +47,43 @@ public class ReadIndex {
 
         SpatialTemporalSite.writeSpatialIndex(conf,infos);
 */
-        ReadFromIndexFile();
+        ReadFromQuardTree();
         System.out.println(".............");
         readndex();
+    }
+
+    public static void ReadFromQuardTree()throws IOException{
+        String indexPath = "/home/zzg/IdeaProjects/TrajectoryStore/32.txt";
+        BufferedReader br = new BufferedReader(new FileReader(indexPath));
+        String line ;
+
+        int count =0;
+        while((line = br.readLine()) != null){
+            count++;
+        }
+        br.close();
+
+        String [] tokens=null;
+        br = new BufferedReader(new FileReader(indexPath));
+        CellInfo[] infos = new CellInfo[count];
+        int i = 0;
+        int id;
+        double blo,bla,elo,ela;
+
+        while((line = br.readLine()) != null){
+            tokens =line.split("\\s");
+            id = Integer.parseInt(tokens[0]);
+
+            blo = Double.parseDouble(tokens[2]);
+            bla = Double.parseDouble(tokens[3]);
+            elo = Double.parseDouble(tokens[4]);
+            ela = Double.parseDouble(tokens[5]);
+            infos[i++] = new CellInfo(id,blo,bla,elo,ela);
+            System.out.println(id+"\t"+blo+" "+bla+"\t"+elo+" "+ela);
+        }
+        Configuration conf  = new Configuration();
+
+        SpatialTemporalSite.writeSpatialIndex(conf,infos);
     }
 
    public static void ReadFromIndexFile() throws IOException{
