@@ -245,7 +245,7 @@ object Block{
    test() //sequeceoutputformat
   //  test2()
    //testArrrayBuffer
-    getPaths
+  //  getPaths
   }
 
   def testArrrayBuffer(): Unit ={
@@ -260,7 +260,7 @@ object Block{
     arrayBuffer+=11
     println(arrayBuffer.length)
   }
-  def test2(): Unit ={
+  /*def test2(): Unit ={
     val hBaseConf = HBaseConfiguration.create()
     val indexes = SpatialTemporalSite.ReadSpatialIndex(hBaseConf)
     val sparkConf = new SparkConf().setAppName("BlockTest").setMaster("local[4]")
@@ -360,7 +360,7 @@ object Block{
 
     sc.stop()
   }
-
+*/
   def getPaths(): Unit ={
     val hadoopConf = new Configuration()
     val hdfs = FileSystem.get(hadoopConf)
@@ -408,15 +408,17 @@ object Block{
     val indexes = SpatialTemporalSite.ReadSpatialIndex(hBaseConf)
 
 
-    val rootInfo: CellInfo = new CellInfo(1, 115.750000, 39.500000, 117.200000, 40.500000)
-    val mlitree: MultiLevelIndexTree = new MultiLevelIndexTree(3, rootInfo)
+    val rootInfo = new CellInfo(1, 115.750000, 39.500000, 117.200000, 40.500000)
+    val mlitree = new MultiLevelIndexTree(3, rootInfo)
     for(info <- indexes){
+      println(info)
       mlitree.insertCell(info);
     }
     val bcIndexes = sc.broadcast(mlitree)
 
-    val records = sc.textFile("/home/zzg/car2InSameRegion")
-  //  val records = sc.textFile("hdfs://localhost:9000/user/zzg/Info-00")
+    println()
+    //   val records = sc.textFile("/home/zzg/car2InSameRegion")
+   val records = sc.textFile("hdfs://localhost:9000/user/zzg/Info-00")
     records.map(x=> {
       val tmp = x.split(",")
       // println(tmp.apply(0))
@@ -436,7 +438,7 @@ object Block{
       val a1 = tmp(6).toByte
       val a2 = tmp(7).toByte
       val a3= tmp(8).toByte
-      val hashCarID = cid%7
+      val hashCarID = cid%3
       val split = (region.toLong <<32) + hashCarID
       (split,new TaxiMs(new MoPoint(cid,log,lat,time1),speed,angle,a1,a2,a3))
       //  (split,(time1,cid,log,lat,speed,angle,a1,a2,a3,time2))
@@ -457,14 +459,18 @@ object Block{
         }
 
         val recordSortedByTime  = x._2.toList.sortWith(sortWithTime)
-        val cellInfo =   SpatialUtilFuncs.getCellInfo(region.toInt,bcIndexes.value)
+
+        var cellInfo =   SpatialUtilFuncs.getCellInfo(region.toInt,bcIndexes.value)
+        if(cellInfo == null){
+          cellInfo = new CellInfo(-1,0,0,0,0);
+        }
         val block= new Block(cellInfo,carRange,recordSortedByTime(0).getTimeStamp())
         for(taxiMS <- recordSortedByTime){
           block.addTaxiMS(taxiMS)
         }
 
         println("print block")
-        block.print
+    //    block.print
 
         var endTime = recordSortedByTime(0).getTimeStamp()
         if(recordSortedByTime.length>1)
@@ -500,7 +506,7 @@ object Block{
     val values = blocks.values
     values.foreach(x=>x.print)*/
     // method 2
-    getPaths
+  //  getPaths
     sc.stop()
   }
 

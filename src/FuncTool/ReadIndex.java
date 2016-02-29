@@ -88,7 +88,7 @@ public class ReadIndex {
 
    public static void ReadFromIndexFile() throws IOException{
 
-        CellInfo c0 = new CellInfo(0,39.26,41.03,115.25,117.30);
+        CellInfo c0 = new CellInfo(1, 115.750000, 39.500000, 117.200000, 40.500000);
        Configuration conf  = new Configuration();
         CellInfo[] infos = new CellInfo[1];
        infos[0] = c0;

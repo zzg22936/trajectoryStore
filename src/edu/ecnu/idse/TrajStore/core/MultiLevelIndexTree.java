@@ -1,9 +1,12 @@
 package edu.ecnu.idse.TrajStore.core;
 
 import edu.ecnu.idse.TrajStore.operations.SpatialTemporalQuery;
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.hadoop.fs.Path;
 
 import java.io.*;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 /**
@@ -15,6 +18,12 @@ public class MultiLevelIndexTree implements Serializable,SpatialTemporalQuery{
 
     private static int Qurd = 4;
     public MLITInternalNode root = null;
+
+    /*
+        the map of infoID and info;
+        add this, is for the query like this, given a info id, query the information about the CellInfo
+     */
+    public Map<Integer,CellInfo> maps = new HashedMap(1);
 
     public MultiLevelIndexTree(int hash_num, CellInfo cellInfo){
         HASH_NUM = hash_num;
@@ -32,7 +41,8 @@ public class MultiLevelIndexTree implements Serializable,SpatialTemporalQuery{
     }*/
 
     public CellInfo SpatialPointQuery(Point p){
-       return this.root.SpatialPointQuery(p);
+        CellInfo result = this.root.SpatialPointQuery(p);
+        return result;
     }
 
     public CellInfo[] SpatialRangeQuery(Rectangle rect){
@@ -47,6 +57,7 @@ public class MultiLevelIndexTree implements Serializable,SpatialTemporalQuery{
 
 
     public void insertCell(CellInfo info){
+        this.maps.put(info.cellId,info);
         this.root.insert(info);
     }
 
@@ -67,9 +78,9 @@ public class MultiLevelIndexTree implements Serializable,SpatialTemporalQuery{
 
     }
 
-    //给定infoID查找该info所对应的信息，为Block test函数服务
-    public void DFSSearchInfo(int infoID){
-
+    //给定infoID查找该info所对应的信息，为Block test函数服务!!!!
+    public CellInfo infoQuery(int infoID){
+        return maps.get(infoID);
     }
 
     public void DFSTraversIndex(MLITNode p){
@@ -403,6 +414,9 @@ public class MultiLevelIndexTree implements Serializable,SpatialTemporalQuery{
         CellInfo infos =  mlitree.SpatialPointQuery(p);
         System.out.println(infos);
         // construct the temporal index from the file list.
+        Path namePath = new Path("hdfs://localhost:9000/user/zzg/Blocks/");
+
+
     }
 
 }

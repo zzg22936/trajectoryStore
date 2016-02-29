@@ -11,22 +11,16 @@ import scala.util.control.Breaks._
 object SpatialUtilFuncs {
 
   def getLocatedRegion(lg:Float, la:Float, mlTree :MultiLevelIndexTree): Int ={
+    var spaceID = -1
     val info =  mlTree.SpatialPointQuery(new Point(lg,la,0));
-    info.cellId
+    if(info != null)
+       spaceID = info.cellId
+    spaceID
   }
 
 
   def getCellInfo(infoID:Int,mlTree :MultiLevelIndexTree): CellInfo ={
-    var cellInfo = regions(0)
-    breakable{
-      for(i <-0 until regions.length){
-        if(regions(i).cellId ==infoID){
-          cellInfo = regions(i)
-          break
-        }
-      }
-    }
-    cellInfo
+      mlTree.infoQuery(infoID)
   }
 
   def getLocatedRegion(lg:Float, la:Float, regions :Array[CellInfo]): Int ={
